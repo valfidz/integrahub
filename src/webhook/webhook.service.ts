@@ -24,7 +24,6 @@ export class WebhookService {
         try {
             await forwardToDiscord(discordUrl, payload);
             this.logger.log(`Forwarded to Discord: ${payload.event}`);
-            return { status: 'success', event: payload.event, timestamp: payload.timestamp };
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             this.logger.error(`Discord forward failed: ${message}`);
@@ -43,5 +42,46 @@ export class WebhookService {
         });
 
         return { status, event: payload.event, timestamp: payload.timestamp };
+    }
+
+    async getLogs(filters: { status?: string; source?: string; limit?: number }) {
+        const { status, source, limit = 20 } = filters;
+
+        const logs = await this.prisma.integrationLog.findMany({
+            where: {
+                ...(status ? { status } : {}),
+                ...(source ? { source } : {}),
+            },
+            orderBy: { createdAt: 'desc' },
+            take: limit
+        });
+
+        const total = await this.prisma.integrationLog.count({
+            where: {
+                ...(status ? { status } : {}),
+                ...(source ? { source } : {}),
+            },
+        });
+
+        return { total, count: logs.length, logs };
+    }
+
+    async getStats() {
+        const total = await this.prisma.integrationLog.count();
+        const success = await this.prisma.integrationLog.count({ where: { status: 'success' } });
+        const error = await this.prisma.integrationLog.count({ where: { status: 'error' } });
+
+        const bySource = await this.prisma.integrationLog.groupBy({
+            by: ['source'],
+            _count: { source: true }
+        });
+
+        return {
+            total,
+            success,
+            error,
+            successRate: total > 0 ? ((success / total) * 100).toFixed(1) + '%' : '0%',
+            bySource: bySource.map((s) => ({ source: s.source, count: s._count.source })),
+        };
     }
 }
