@@ -1,99 +1,215 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white" alt="NestJS 11" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?logo=prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Render-46E3B7?logo=render&logoColor=black" alt="Render" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<h1 align="center">IntegraHub</h1>
+<p align="center"><strong>Centralized webhook ingestion for app monitoring</strong></p>
+<p align="center">
+  Receive, transform, and forward webhook events from multiple sources — all through a single endpoint.
+  Built with NestJS, powered by Prisma + PostgreSQL, and deployed on Render.
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+##  Overview
 
-## Project setup
+IntegraHub is a lightweight webhook integration service that acts as a central ingestion point for application events. Instead of managing individual webhook configurations per service, IntegraHub provides a unified endpoint that:
 
-```bash
-$ npm install
+1. **Receives** webhook payloads from any source
+2. **Transforms** them into a normalized event format
+3. **Forwards** them as rich Discord embeds in real-time
+4. **Logs** every event to PostgreSQL for audit & analytics
+
+> **Live instance:** [integrahub.onrender.com](https://integrahub.onrender.com)
+
+##  Architecture
+
+```
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│ GitHub      │     │              │     │              │     │   Discord    │
+│ Sentry      │────▶│  POST /webhook/receive  │────▶│  Rich Embed  │
+│ Custom Apps │     │              │     │              │     │              │
+│ ...         │     │  IntegraHub  │     │  PostgreSQL  │     │  (Monitoring)│
+└─────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+                           │                     ▲
+                           │                     │
+                           ▼                     │
+                    ┌──────────────┐            │
+                    │   GET /logs  │────────────┘
+                    │  GET /stats  │
+                    └──────────────┘
+                    API Monitoring
 ```
 
-## Compile and run the project
+## ✨ Features
 
-```bash
-# development
-$ npm run start
+- **Unified Webhook Endpoint** — One URL for all your event sources
+- **Smart Payload Transformation** — Auto-normalizes events from different formats (`event`, `type`, `source`, `app`, `message`, `description`)
+- **Discord Forwarding** — Rich embed messages with source, timestamp, and summary
+- **Persistent Logging** — Every event stored in PostgreSQL for audit trails
+- **Monitoring API** — Query logs by status/source, view aggregate statistics
+- **Blazing Fast** — Async non-blocking I/O with NestJS + Axios
 
-# watch mode
-$ npm run start:dev
+##  Tech Stack
 
-# production mode
-$ npm run start:prod
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | [NestJS 11](https://nestjs.com/) |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) via [Prisma](https://www.prisma.io/) |
+| **Adapter** | `@prisma/adapter-pg` (driver-level) |
+| **HTTP Client** | [Axios](https://axios-http.com/) |
+| **Deployment** | [Render](https://render.com/) |
+| **Package Manager** | npm |
+
+##  API Reference
+
+### Receive a Webhook
+
+```http
+POST /webhook/receive
 ```
 
-## Run tests
+Accepts any JSON payload. Fields are auto-mapped:
+
+| Payload Field | Mapped To |
+|---------------|-----------|
+| `event` / `type` | Event name |
+| `source` / `app` | Source identifier |
+| `message` / `description` | Summary text |
+
+**Example:**
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+curl -X POST https://integrahub.onrender.com/webhook/receive \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "deploy.completed",
+    "source": "github-actions",
+    "message": "Production deployment v2.4.1 completed successfully"
+  }'
 ```
 
-## Deployment
+**Response:**
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```json
+{
+  "status": "success",
+  "event": "deploy.completed",
+  "timestamp": "2026-06-25T10:30:00.000Z"
+}
+```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Query Logs
+
+```http
+GET /webhook/logs?status=success&source=github-actions&limit=20
+```
+
+| Query Param | Type | Default | Description |
+|-------------|------|---------|-------------|
+| `status` | string | — | Filter by status (`success` / `error`) |
+| `source` | string | — | Filter by source identifier |
+| `limit` | number | `20` | Max results to return |
+
+### View Statistics
+
+```http
+GET /webhook/stats
+```
+
+Returns aggregate metrics: total events, success/error counts, success rate, and breakdown by source.
+
+##  Quick Start
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Clone the repository
+git clone https://github.com/valfidz/integrahub.git
+cd integrahub
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your DATABASE_URL and DISCORD_WEBHOOK_URL
+
+# Run database migrations
+npx prisma migrate dev
+
+# Start development server
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Required Environment Variables
 
-## Resources
+```env
+DATABASE_URL=postgresql://user:password@host:5432/integrahub
+DIRECT_URL=postgresql://user:password@host:5432/integrahub
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+PORT=3000
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+##  Project Structure
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```
+src/
+├── main.ts                      # Application entry point
+├── app.module.ts                # Root module (Config + Webhook + Prisma)
+├── prisma/
+│   ├── prisma.module.ts         # Global Prisma provider
+│   └── prisma.service.ts        # Prisma client (pg adapter)
+├── webhook/
+│   ├── webhook.module.ts        # Webhook feature module
+│   ├── webhook.controller.ts    # POST /receive, GET /logs, GET /stats
+│   ├── webhook.service.ts       # Business logic (handle, forward, log)
+│   ├── webhook.transformer.ts   # Payload normalization
+│   └── discord.forwarder.ts     # Discord webhook client
+prisma/
+└── schema.prisma                # Database schema (integration_logs)
+```
 
-## Support
+##  Database Schema
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```prisma
+model integrationLog {
+  id        String   @id @default(uuid())
+  event     String
+  source    String
+  summary   String
+  status    String       // "success" | "error"
+  errorMsg  String?
+  rawPayload Json
+  createdAt DateTime @default(now())
 
-## Stay in touch
+  @@map("integration_logs")
+}
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Every incoming webhook is stored with its original payload intact — no data loss.
 
-## License
+##  Testing
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-# integrahub
+```bash
+# Unit tests
+npm run test
+
+# Test with coverage
+npm run test:cov
+```
+
+##  License
+
+[MIT](LICENSE)
+
+---
+
+<p align="center">
+  <a href="https://github.com/valfidz/integrahub">GitHub</a>
+  ·
+  <a href="https://integrahub.onrender.com">Live Demo</a>
+</p>

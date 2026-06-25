@@ -1,8 +1,8 @@
 {
   "name": "integrahub",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Centralized webhook ingestion service — receive, transform, and forward app events to Discord with PostgreSQL audit logging.",
+  "author": "Naufal Hafizh Nugraha",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
