@@ -28,4 +28,9 @@ export class WebhookController {
     async getStats() {
         return this.webhookService.getStats();
     }
+
+    @Get('timeseries')
+    async getTimeSeries(@Query('hours') hours?: string) {
+        return this.webhookService.getTimeSeries(hours ? parseInt(hours, 10) : 24);
+    }
 }

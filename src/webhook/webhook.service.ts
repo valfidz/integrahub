@@ -84,4 +84,41 @@ export class WebhookService {
             bySource: bySource.map((s) => ({ source: s.source, count: s._count.source })),
         };
     }
+
+    async getTimeSeries(hours: number = 24) {
+        const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+        const logs = await this.prisma.integrationLog.findMany({
+            where: { createdAt: { gte: since } },
+            select: { createdAt: true, status: true },
+            orderBy: { createdAt: 'asc' },
+        });
+
+        // Bucket by hour
+        const buckets = new Map<string, { success: number; error: number }>();
+
+        for (const log of logs) {
+            const bucketKey = new Date(log.createdAt);
+            bucketKey.setMinutes(0, 0, 0);
+            const key = bucketKey.toISOString();
+
+            if (!buckets.has(key)) {
+                buckets.set(key, { success: 0, error: 0 });
+            }
+
+            const bucket = buckets.get(key)!;
+
+            if (log.status === 'success') bucket.success++;
+            else bucket.error++;
+        }
+
+        return Array.from(buckets.entries())
+            .map(([timestamp, counts]) => ({
+                timestamp,
+                success: counts.success,
+                error: counts.error,
+                total: counts.success + counts.error,
+            }))
+            .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    }
 }
