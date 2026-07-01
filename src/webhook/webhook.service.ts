@@ -50,7 +50,7 @@ export class WebhookService {
         const logs = await this.prisma.integrationLog.findMany({
             where: {
                 ...(status ? { status } : {}),
-                ...(source ? { source } : {}),
+                ...(source ? { source: { contains: source, mode: 'insensitive' } } : {}),
             },
             orderBy: { createdAt: 'desc' },
             take: limit
@@ -59,7 +59,7 @@ export class WebhookService {
         const total = await this.prisma.integrationLog.count({
             where: {
                 ...(status ? { status } : {}),
-                ...(source ? { source } : {}),
+                ...(source ? { source: { contains: source, mode: 'insensitive' } } : {}),
             },
         });
 
